@@ -9,4 +9,6 @@ public class GameEvents : MonoBehaviour
     public static Action OnBreake;
 
     public static Action OnGameEnd;
+
+    public static Action OnTestDeth;
 }

@@ -9,6 +9,7 @@ public class InGameView : MonoBehaviour
 {
     [SerializeField] private CustomButton _gasButton;
     [SerializeField] private CustomButton _breakeButton;
+    [SerializeField] private Button _testDethButton;
 
     private Coroutine _gasCoroutine;
     private Coroutine _breakeCoroutine;
@@ -29,6 +30,11 @@ public class InGameView : MonoBehaviour
         _breakeButton.onRelease.AddListener(() =>
         {
             StopCoroutine(_breakeCoroutine);
+        });
+
+        _testDethButton.onClick.AddListener(() =>
+        {
+            GameEvents.OnTestDeth?.Invoke();
         });
     }
     private IEnumerator Gas()

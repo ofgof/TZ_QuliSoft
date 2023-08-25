@@ -17,11 +17,15 @@ public class CarController : MonoBehaviour
     {
         GameEvents.OnGas += Gas;
         GameEvents.OnBreake += Breake;
+
+        GameEvents.OnTestDeth += TestDeth;
     }
     private void OnDestroy()
     {
         GameEvents.OnGas -= Gas;
         GameEvents.OnBreake -= Breake;
+
+        GameEvents.OnTestDeth -= TestDeth;
     }
     private void FixedUpdate()
     {
@@ -63,5 +67,11 @@ public class CarController : MonoBehaviour
     {
         dir = Math.Sign(dir);
         _car.AddTorque(dir * _speed * Time.fixedDeltaTime);
+    }
+
+    private void TestDeth()
+    {
+        _car.gameObject.transform.position = _car.gameObject.transform.position + Vector3.up * 5f;
+        _car.gameObject.transform.rotation = Quaternion.Euler(0f, 0f, 180f);
     }
 }
