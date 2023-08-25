@@ -6,7 +6,7 @@ using UnityEngine.U2D;
 [ExecuteInEditMode]
 public class LevelCreator : MonoBehaviour
 {
-    [SerializeField] private List<SpriteShapeController> _groundSpriteShapeList;
+    [SerializeField] private SpriteShapeController[] _groundSpriteShapeList;
 
     [SerializeField] private int _levelPoints = 100;
     [SerializeField] private float _xPointsDistance = 2f;
@@ -19,20 +19,12 @@ public class LevelCreator : MonoBehaviour
 
     private Vector3 _lastPosition;
     private int _currentChunk = 0;
-    private void OnValidate()
-    {
-        Init();        
-    }
-    private void Start()
-    {
-        Init();
-    }
     public void Init()
     {
         _levelLength = (_levelPoints - 1) * _xPointsDistance;
         _lastPosition = transform.position;
         _currentChunk = 0;
-
+        _groundSpriteShapeList = transform.GetComponentsInChildren<SpriteShapeController>();
         foreach (var spriteShape in _groundSpriteShapeList)
         {
             spriteShape.spline.Clear();
@@ -47,7 +39,7 @@ public class LevelCreator : MonoBehaviour
     }
     private void IsNewChunkNeeded(float xPosition)
     {
-        int index = _currentChunk % _groundSpriteShapeList.Count;
+        int index = _currentChunk % _groundSpriteShapeList.Length;
         if (_groundSpriteShapeList[index].transform.position.x + _levelLength * 1.5f < xPosition)
         {
             CreatChunk();
@@ -55,7 +47,7 @@ public class LevelCreator : MonoBehaviour
     }
     private void CreatChunk()
     {
-        int index = _currentChunk % _groundSpriteShapeList.Count;
+        int index = _currentChunk % _groundSpriteShapeList.Length;
         var ground = _groundSpriteShapeList[index];
         Spline spline = ground.spline;
 

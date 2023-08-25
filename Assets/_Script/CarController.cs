@@ -5,6 +5,7 @@ public class CarController : MonoBehaviour
 {
     public static Action<float> OnUpdatePlayerPosition;
 
+    [Header("Car")]
     [SerializeField] private Rigidbody2D _frontTire;
     [SerializeField] private Rigidbody2D _backTire;
     [SerializeField] private float _speed = 100f;
@@ -12,24 +13,29 @@ public class CarController : MonoBehaviour
     [SerializeField] private Rigidbody2D _car;
     [SerializeField] private float _rotationSpeed = 100f;
 
-    private void Start()
+    public void Init()
     {
-
+        GameEvents.OnGas += Gas;
+        GameEvents.OnBreake += Breake;
+    }
+    private void OnDestroy()
+    {
+        GameEvents.OnGas -= Gas;
+        GameEvents.OnBreake -= Breake;
     }
     private void FixedUpdate()
     {
-        if (Input.GetMouseButton(0))
-        {
-            AccelirateForward();
-            RotateForward();
-        }
-        if (Input.GetMouseButton(1))
-        {
-            AccelirateBackward();
-            RotateBackward();
-        }
-
         OnUpdatePlayerPosition?.Invoke(transform.position.x);
+    }
+    private void Gas()
+    {
+        AccelirateForward();
+        RotateForward();
+    }
+    private void Breake()
+    {
+        AccelirateBackward();
+        RotateBackward();
     }
     private void AccelirateForward()
     {
