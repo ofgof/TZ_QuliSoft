@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using Unity.Mathematics;
 using UnityEngine;
 
 public class CarController : MonoBehaviour
 {
+    public static Action<float> OnUpdatePlayerPosition;
+
     [SerializeField] private Rigidbody2D _frontTire;
     [SerializeField] private Rigidbody2D _backTire;
     [SerializeField] private float _speed = 100f;
@@ -29,6 +28,8 @@ public class CarController : MonoBehaviour
             AccelirateBackward();
             RotateBackward();
         }
+
+        OnUpdatePlayerPosition?.Invoke(transform.position.x);
     }
     private void AccelirateForward()
     {

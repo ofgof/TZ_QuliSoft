@@ -6,47 +6,87 @@ using UnityEngine.U2D;
 [ExecuteInEditMode]
 public class LevelCreator : MonoBehaviour
 {
-    [SerializeField] private SpriteShapeController _groundSpriteShape1;
-    [SerializeField] private SpriteShapeController _groundSpriteShape2;
+    [SerializeField] private List<SpriteShapeController> _groundSpriteShapeList;
 
-    [SerializeField] private int _levelLength = 100;
+    [SerializeField] private int _levelPoints = 100;
     [SerializeField] private float _xPointsDistance = 2f;
     [SerializeField] private float _yPointsDistance = 2f;
     [SerializeField] private float _smoothness = 0.5f;
     [SerializeField] private float _noiseSeed = 0.5f;
     [SerializeField] private float _bottom = 10f;
 
-    private Vector3 _lastPosition;
+    private float _levelLength;
 
+    private Vector3 _lastPosition;
+    private int _currentChunk = 0;
     private void OnValidate()
     {
-        CreatChunk();
+        Init();        
+    }
+    private void Start()
+    {
+        Init();
     }
     public void Init()
     {
+        _levelLength = (_levelPoints - 1) * _xPointsDistance;
         _lastPosition = transform.position;
-        _groundSpriteShape1.spline.Clear();
-        _groundSpriteShape2.spline.Clear();
+        _currentChunk = 0;
+
+        foreach (var spriteShape in _groundSpriteShapeList)
+        {
+            spriteShape.spline.Clear();
+            CreatChunk();
+        }
+
+        CarController.OnUpdatePlayerPosition += IsNewChunkNeeded;
     }
-    public void CreatChunk()
+    private void OnDestroy()
+    {        
+        CarController.OnUpdatePlayerPosition -= IsNewChunkNeeded;
+    }
+    private void IsNewChunkNeeded(float xPosition)
     {
-        Spline spline = _groundSpriteShape1.spline;
-        if(_groundSpriteShape1.spline.GetPointCount() == 0)
+        int index = _currentChunk % _groundSpriteShapeList.Count;
+        if (_groundSpriteShapeList[index].transform.position.x + _levelLength * 1.5f < xPosition)
         {
-            spline = _groundSpriteShape1.spline;
+            CreatChunk();
         }
-        else if(_groundSpriteShape2.spline.GetPointCount() == 0)
+    }
+    private void CreatChunk()
+    {
+        int index = _currentChunk % _groundSpriteShapeList.Count;
+        var ground = _groundSpriteShapeList[index];
+        Spline spline = ground.spline;
+
+        GenerateSurface(spline);
+
+        GenerateBottomPoints(spline);
+
+        var position = ground.transform.position;
+        position.x = _levelLength * _currentChunk;
+        ground.transform.position = position;
+
+        _currentChunk++;
+    }
+    private void GenerateSurface(Spline spline)
+    {
+        spline.Clear();
+
+        for (int i = 0; i < _levelPoints; i++)
         {
-            spline = _groundSpriteShape2.spline;
-        }
+            if (i == 0)
+            {
+                _lastPosition = new Vector3(transform.position.x + _xPointsDistance * i, _lastPosition.y);
+            }
+            else
+            {
+                _lastPosition = new Vector3(transform.position.x + _xPointsDistance * i, Mathf.PerlinNoise(0, i * _noiseSeed * _noiseSeed) * _yPointsDistance);
+            }
 
-
-        for (int i = 0; i < _levelLength; i++)
-        {            
-            _lastPosition = new Vector3(_lastPosition.x + _xPointsDistance, Mathf.PerlinNoise(0, i * _noiseSeed) * _yPointsDistance);
             spline.InsertPointAt(i, _lastPosition);
 
-            if (0 < i && i < _levelLength - 1)
+            if (0 < i && i < _levelPoints - 1)
             {
                 spline.SetTangentMode(i, ShapeTangentMode.Continuous);
                 var xSmoothness = _xPointsDistance * _smoothness;
@@ -54,12 +94,10 @@ public class LevelCreator : MonoBehaviour
                 spline.SetRightTangent(i, Vector3.right * xSmoothness);
             }
         }
-
-        spline.InsertPointAt(_levelLength, new Vector3(_lastPosition.x, transform.position.y - _bottom));
-        spline.InsertPointAt(_levelLength + 1, new Vector3(transform.position.x, transform.position.y - _bottom));
     }
-    public float GetLastPointPosition()
+    private void GenerateBottomPoints(Spline spline)
     {
-        return _lastPosition.x;
+        spline.InsertPointAt(_levelPoints, new Vector3(_lastPosition.x, transform.position.y - _bottom));
+        spline.InsertPointAt(_levelPoints + 1, new Vector3(transform.position.x, transform.position.y - _bottom));
     }
 }
